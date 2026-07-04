@@ -24,44 +24,47 @@ async function startBot() {
         auth: state
     });
 
+    // Request pairing code immediately when connection is ready
+    let pairingCodeRequested = false;
+
     sock.ev.on('connection.update', async (update) => {
-    console.log('📡 Connection update:', Object.keys(update));
-    
-    const { connection, lastDisconnect, qr } = update;
-    
-    if (connection === 'open') {
-        console.log('✅ Life Style Bot is ONLINE!');
-    }
-
-    if (qr) {
-        console.log('📱 QR CODE RECEIVED!');
-        console.log('🔗 Copy this URL into your browser:');
-        console.log(qr);
-    }
-
-    // Only request pairing code when connection is 'open' (fully ready)
-    if (connection === 'open') {
-        try {
-            const phoneNumber = process.env.PHONE_NUMBER;
-            if (phoneNumber) {
-                console.log(`📱 Requesting pairing code for ${phoneNumber}...`);
-                const code = await sock.requestPairingCode(phoneNumber);
-                console.log(`✅ PAIRING CODE: ${code}`);
-                console.log(`🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number`);
+        console.log('📡 Connection update:', Object.keys(update));
+        
+        const { connection, lastDisconnect, qr } = update;
+        
+        // Only request pairing code once
+        if (connection === 'open' && !pairingCodeRequested) {
+            pairingCodeRequested = true;
+            console.log('✅ Connection is open! Requesting pairing code...');
+            
+            try {
+                const phoneNumber = process.env.PHONE_NUMBER;
+                if (phoneNumber) {
+                    console.log(`📱 Requesting pairing code for ${phoneNumber}...`);
+                    const code = await sock.requestPairingCode(phoneNumber);
+                    console.log(`✅ PAIRING CODE: ${code}`);
+                    console.log(`🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number`);
+                } else {
+                    console.log('⚠️ No PHONE_NUMBER found in environment variables!');
+                    console.log('📱 Please add PHONE_NUMBER to your Render environment variables.');
+                }
+            } catch (error) {
+                console.log('⚠️ Could not request pairing code:', error.message);
             }
-        } catch (error) {
-            console.log('⚠️ Could not request pairing code:', error.message);
         }
-    }
 
-    if (connection === 'close') {
-        const shouldReconnect = (lastDisconnect?.error instanceof Boom)?.output?.statusCode !== 401;
-        console.log('Connection closed, reconnecting...');
-        if (shouldReconnect) {
-            setTimeout(startBot, 5000);
+        if (qr) {
+            console.log('📱 QR CODE RECEIVED (ignore this - use pairing code above)');
         }
-    }
-});
+
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect?.error instanceof Boom)?.output?.statusCode !== 401;
+            console.log('Connection closed, reconnecting...');
+            if (shouldReconnect) {
+                setTimeout(startBot, 5000);
+            }
+        }
+    });
 
     sock.ev.on('creds.update', saveCreds);
 
@@ -72,9 +75,9 @@ async function startBot() {
             const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
             console.log(`📩 Message from ${sender}: ${text}`);
 
-            // ==================== LIFE STYLE REPLIES ====================
-            const lowerText = text.toLowerCase();
             let reply = '';
+
+            const lowerText = text.toLowerCase();
 
             // Greetings
             if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {
@@ -168,7 +171,6 @@ async function startBot() {
                 reply = defaultReplies[Math.floor(Math.random() * defaultReplies.length)];
             }
 
-            // Send the reply
             await sock.sendMessage(sender, { text: reply });
         }
     });
