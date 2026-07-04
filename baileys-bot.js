@@ -25,43 +25,43 @@ async function startBot() {
     });
 
     sock.ev.on('connection.update', async (update) => {
-        console.log('📡 Connection update:', Object.keys(update));
-        
-        const { connection, lastDisconnect, qr } = update;
-        
-        if (connection === 'open') {
-            console.log('✅ Life Style Bot is ONLINE!');
-        }
+    console.log('📡 Connection update:', Object.keys(update));
+    
+    const { connection, lastDisconnect, qr } = update;
+    
+    if (connection === 'open') {
+        console.log('✅ Life Style Bot is ONLINE!');
+    }
 
-        if (qr) {
-            console.log('📱 QR CODE RECEIVED!');
-            console.log('🔗 Copy this URL into your browser:');
-            console.log(qr);
-        }
+    if (qr) {
+        console.log('📱 QR CODE RECEIVED!');
+        console.log('🔗 Copy this URL into your browser:');
+        console.log(qr);
+    }
 
-        // Request pairing code when connection is ready
-        if (connection === 'connecting' || connection === 'open') {
-            try {
-                const phoneNumber = process.env.PHONE_NUMBER;
-                if (phoneNumber) {
-                    console.log(`📱 Requesting pairing code for ${phoneNumber}...`);
-                    const code = await sock.requestPairingCode(phoneNumber);
-                    console.log(`✅ PAIRING CODE: ${code}`);
-                    console.log(`🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number`);
-                }
-            } catch (error) {
-                console.log('⚠️ Could not request pairing code:', error.message);
+    // Only request pairing code when connection is 'open' (fully ready)
+    if (connection === 'open') {
+        try {
+            const phoneNumber = process.env.PHONE_NUMBER;
+            if (phoneNumber) {
+                console.log(`📱 Requesting pairing code for ${phoneNumber}...`);
+                const code = await sock.requestPairingCode(phoneNumber);
+                console.log(`✅ PAIRING CODE: ${code}`);
+                console.log(`🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number`);
             }
+        } catch (error) {
+            console.log('⚠️ Could not request pairing code:', error.message);
         }
+    }
 
-        if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect?.error instanceof Boom)?.output?.statusCode !== 401;
-            console.log('Connection closed, reconnecting...');
-            if (shouldReconnect) {
-                setTimeout(startBot, 5000);
-            }
+    if (connection === 'close') {
+        const shouldReconnect = (lastDisconnect?.error instanceof Boom)?.output?.statusCode !== 401;
+        console.log('Connection closed, reconnecting...');
+        if (shouldReconnect) {
+            setTimeout(startBot, 5000);
         }
-    });
+    }
+});
 
     sock.ev.on('creds.update', saveCreds);
 
