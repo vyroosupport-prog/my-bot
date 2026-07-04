@@ -24,7 +24,6 @@ async function startBot() {
         auth: state
     });
 
-    // Request pairing code immediately when connection is ready
     let pairingCodeRequested = false;
 
     sock.ev.on('connection.update', async (update) => {
@@ -32,7 +31,15 @@ async function startBot() {
         
         const { connection, lastDisconnect, qr } = update;
         
-        // Only request pairing code once
+        // Show QR code when received
+        if (qr) {
+            console.log('📱 QR CODE RECEIVED!');
+            console.log('🔗 Copy this URL into your browser:');
+            console.log(qr);
+            console.log('📱 Or scan the QR code below:');
+            // QR code will print automatically via Baileys
+        }
+        
         if (connection === 'open' && !pairingCodeRequested) {
             pairingCodeRequested = true;
             console.log('✅ Connection is open! Requesting pairing code...');
@@ -45,16 +52,11 @@ async function startBot() {
                     console.log(`✅ PAIRING CODE: ${code}`);
                     console.log(`🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number`);
                 } else {
-                    console.log('⚠️ No PHONE_NUMBER found in environment variables!');
-                    console.log('📱 Please add PHONE_NUMBER to your Render environment variables.');
+                    console.log('⚠️ No PHONE_NUMBER found.');
                 }
             } catch (error) {
                 console.log('⚠️ Could not request pairing code:', error.message);
             }
-        }
-
-        if (qr) {
-            console.log('📱 QR CODE RECEIVED (ignore this - use pairing code above)');
         }
 
         if (connection === 'close') {
@@ -75,9 +77,8 @@ async function startBot() {
             const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
             console.log(`📩 Message from ${sender}: ${text}`);
 
-            let reply = '';
-
             const lowerText = text.toLowerCase();
+            let reply = '';
 
             // Greetings
             if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {
@@ -93,14 +94,13 @@ async function startBot() {
             }
             // Advice
             else if (lowerText.includes('advice') || lowerText.includes('suggest') || lowerText.includes('help')) {
-                reply = `💡 *My advice for you*\n\nNo matter wetin you dey face today, remember say:\n• You be warrior 💪\n• This moment go pass ⏳\n• You no dey alone 🤝\n\nKeep your head up! Any other thing you want talk about? 😊`;
+                reply = `💡 *My advice for you*\n\nNo matter wetin you dey face today, remember say:\n• You be warrior 💪\n• This moment go pass ⏳\n• You no dey alone 🤝\n\nKeep your head up! 😊`;
             }
             // Joke
             else if (lowerText.includes('joke') || lowerText.includes('funny') || lowerText.includes('make me laugh')) {
                 const jokes = [
                     `😂 *Joke 1*\n\nWhy Nigerian man no dey use calculator?\nBecause e know say na only God fit count all the wahala for life! 😂`,
-                    `😂 *Joke 2*\n\nWoman: "Honey, if I drop 10 naira, you go see am?"\nMan: "Yes."\nWoman: "If I drop 100 naira, you go see am?"\nMan: "Yes."\nWoman: "If I drop 1000 naira, you go see am?"\nMan: "Yes."\nWoman: "So wetin dey your eye?"\nMan: "Na God dey my eye!" 😂`,
-                    `😂 *Joke 3*\n\nPastor: "Make una pray for the person wey no get money."\nMember: "But Pastor, na you!"\nPastor: "Shhh! Na humility! Your prayer dey work well well!" 😂`
+                    `😂 *Joke 2*\n\nWoman: "Honey, if I drop 10 naira, you go see am?"\nMan: "Yes."\nWoman: "If I drop 100 naira, you go see am?"\nMan: "Yes."\nWoman: "If I drop 1000 naira, you go see am?"\nMan: "Yes."\nWoman: "So wetin dey your eye?"\nMan: "Na God dey my eye!" 😂`
                 ];
                 reply = jokes[Math.floor(Math.random() * jokes.length)];
             }
@@ -108,65 +108,15 @@ async function startBot() {
             else if (lowerText.includes('quote') || lowerText.includes('inspire') || lowerText.includes('wisdom')) {
                 const quotes = [
                     `🌟 *Quote of the day*\n\n"Na the journey wey you no see, but you must walk am - that one na faith."\n\nKeep believing! 💪`,
-                    `🌟 *Quote of the day*\n\n"Life na like bicycle - to keep balance, you must keep moving."\n\nNo stop moving forward! 🚴‍♂️`,
-                    `🌟 *Quote of the day*\n\n"Na today wey you get, no be tomorrow you go get. Use today well."\n\nMake the most of today! ⏰`
+                    `🌟 *Quote of the day*\n\n"Life na like bicycle - to keep balance, you must keep moving."\n\nNo stop moving forward! 🚴‍♂️`
                 ];
                 reply = quotes[Math.floor(Math.random() * quotes.length)];
-            }
-            // Motivation
-            else if (lowerText.includes('motivate') || lowerText.includes('encourage') || lowerText.includes('inspire')) {
-                reply = `💪 *Motivation for you*\n\nYou be star! ⭐\n\nNo matter wetin dey happen, remember say:\n• Every champion start small\n• Every journey start with one step\n• Your story no finish yet!\n\nYou get what e take! 🚀`;
-            }
-            // Gratitude
-            else if (lowerText.includes('thank') || lowerText.includes('grateful') || lowerText.includes('bless')) {
-                reply = `🙏 *Gratitude*\n\nNa good thing to thank God. When you dey grateful, more blessings go come.\n\nWetin you thank God for today? Tell me! 😊`;
-            }
-            // Prayer
-            else if (lowerText.includes('pray') || lowerText.includes('prayer') || lowerText.includes('pray for me')) {
-                reply = `🙏 *I go pray for you*\n\nGod wey see you, e go answer you.\n\nMay you find peace, joy, and favor today.\n\nYou dey loved! ❤️`;
-            }
-            // Food
-            else if (lowerText.includes('food') || lowerText.includes('eat') || lowerText.includes('hungry')) {
-                reply = `🍲 *Food talk!*\n\nWetin you go chop today?\n\nRice and stew? Jollof? Amala? Egusi?\n\nAbeg no make me hungry o! 😩\n\nWetin dey your pot? Tell me! 😋`;
-            }
-            // Family
-            else if (lowerText.includes('family') || lowerText.includes('mother') || lowerText.includes('father')) {
-                reply = `👨‍👩‍👧‍👦 *Family na everything!*\n\nNo matter wetin happen, family dey.\n\nCall your people today. Tell them you love them.\n\nAny family gist? Make I hear am! 🗣️`;
-            }
-            // Love
-            else if (lowerText.includes('love') || lowerText.includes('girlfriend') || lowerText.includes('boyfriend') || lowerText.includes('relationship')) {
-                reply = `❤️ *Love talk!*\n\nLove na sweet thing o! 🥰\n\nIf you get love, hold am well. If you no get, e go come.\n\nTell me about your love life! Na safe space. 😊`;
-            }
-            // Money
-            else if (lowerText.includes('money') || lowerText.includes('cash') || lowerText.includes('sapa') || lowerText.includes('broke')) {
-                reply = `💰 *Money matter!*\n\nE no easy but e go come.\n\nSmall money better than no money. Save something every month.\n\nHow money dey your side? Make we talk am! 💪`;
-            }
-            // Work
-            else if (lowerText.includes('work') || lowerText.includes('job') || lowerText.includes('hustle')) {
-                reply = `💼 *Hustle dey!*\n\nYour hustle today na your luxury tomorrow.\n\nNo compare yourself to other people. Run your race.\n\nHow work dey? Tell me wetin dey happen! 🚀`;
-            }
-            // School
-            else if (lowerText.includes('school') || lowerText.includes('exam') || lowerText.includes('student')) {
-                reply = `📚 *School dey stress, but e go end!*\n\nRead small every day. No wait until exam before you read.\n\nYou fit do am! 💪\n\nWetin dey happen for school? Share the gist! 😊`;
-            }
-            // Travel
-            else if (lowerText.includes('travel') || lowerText.includes('trip') || lowerText.includes('go')) {
-                reply = `✈️ *Travel gist!*\n\nTravel na sweet thing o! 🏖️\n\nWhere you dey go? Lagos? Abuja? Abroad?\n\nMake sure you plan well and enjoy every moment! 🚀`;
-            }
-            // Health
-            else if (lowerText.includes('health') || lowerText.includes('sick') || lowerText.includes('hospital')) {
-                reply = `🏥 *Health na wealth!*\n\nNo joke with your body o!\n\nDrink water, rest well, eat good food.\n\nIf you sick, go hospital. Take care of yourself! 💪`;
-            }
-            // Thanks/Bye
-            else if (lowerText.includes('bye') || lowerText.includes('thanks')) {
-                reply = `👋 *Bye for now!*\n\nThanks for chatting with me.\n\nCome back anytime you want to gist!\n\nHave a blessed day! 🌟`;
             }
             // Default
             else {
                 const defaultReplies = [
-                    `🤖 *I dey here!*\n\nI no quite understand, but no worry.\n\nTry these:\n• Hello - Greet me\n• Gist - Tell me something\n• Joke - Make you laugh\n• Advice - Give you guidance\n• Help - See all options\n\nWetin you want talk about? 🗣️`,
-                    
-                    `🤖 *Life Style Bot*\n\nI dey here to listen and gist with you!\n\nYou fit ask me for:\n• Gist 🗣️\n• Advice 💡\n• Joke 😂\n• Quote 🌟\n• Motivation 💪\n• Prayer 🙏\n\nJust type wetin dey your mind! 😊`
+                    `🤖 *I dey here!*\n\nI no quite understand, but no worry.\n\nTry these:\n• Hello - Greet me\n• Gist - Tell me something\n• Joke - Make you laugh\n• Advice - Give you guidance\n\nWetin you want talk about? 🗣️`,
+                    `🤖 *Life Style Bot*\n\nI dey here to listen and gist with you!\n\nYou fit ask me for:\n• Gist 🗣️\n• Advice 💡\n• Joke 😂\n• Quote 🌟\n\nJust type wetin dey your mind! 😊`
                 ];
                 reply = defaultReplies[Math.floor(Math.random() * defaultReplies.length)];
             }
