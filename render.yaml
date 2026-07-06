@@ -2,9 +2,16 @@ services:
   - type: web
     name: whatsapp-bot
     env: node
+    plan: free
     buildCommand: npm install
-    startCommand: node index.js
+    startCommand: node baileys-bot.js
     envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: PHONE_NUMBER
+        value: 2348103741405
       - key: BUSINESS_NAME
         value: ENV
       - key: BUSINESS_HOURS_START
@@ -18,4 +25,4 @@ services:
       - key: AUTO_REPLY_DELAY
         value: "20"
       - key: ADMIN_NUMBER
-        value: 07012796255,
+        value: "07012796255"

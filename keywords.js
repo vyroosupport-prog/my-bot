@@ -7,25 +7,20 @@ module.exports = {
 
     // ==================== GREETINGS ====================
     greetings: {
-        keywords: ['hello', 'hi', 'hey', 'good morning', 'good evening', 'good afternoon', 'howdy', 'sup', 'yo', 'how far', 'whats up', 'wassup', 'how you dey', 'how you dey do', 'morning', 'evening', 'afternoon', 'na wa o', 'mtchew', 'sapa', 'abi', 'shey', 'oya', 'jo', 'abeg', 'please', 'how body', 'body dey', 'how life'],
+        keywords: ['hello', 'hi', 'hey', 'good morning', 'good evening', 'good afternoon', 'good day', 'good night', 'howdy', 'sup', 'yo', 'how far', 'whats up', 'wassup', 'what is up', 'whatsup', 'how you dey', 'how you dey do', 'how are you', 'how are you doing', 'how body', 'body dey', 'how life', 'morning', 'evening', 'afternoon', 'na wa o', 'mtchew', 'sapa', 'abi', 'shey', 'oya', 'jo', 'abeg', 'please', 'i dey fine', 'i am fine', 'i dey okay', 'i am okay', 'i dey good', 'i am good', 'how you dey today', 'how your day', 'how una dey', 'how everything', 'how thing dey', 'how you do', 'good one', 'welcome', 'welcome back', 'long time', 'seen you', 'how market'],
         response: (userName) => {
-            return `👋 *Hello ${userName}!* How you dey today?\n\n` +
-                   `I dey here o! 🙌 Na your life bot I be. I fit help you with many things.\n\n` +
-                   `💬 *Wetin I fit help you with:*\n` +
-                   `• Gist and talk (Chat)\n` +
-                   `• Advice wey sweet (Advice)\n` +
-                   `• Jokes wey funny (Jokes)\n` +
-                   `• Quote of the day (Quotes)\n` +
-                   `• Remember wetin you do (Reminders)\n` +
-                   `• Write small notes (Notes)\n` +
-                   `• Just dey talk if you bored!\n\n` +
-                   `Tell me wetin dey your mind! 🗣️`;
+            const greetings = [
+                `👋 *Hello ${userName}!* How you dey today?\n\nI dey here o! 🙌 Na your life bot I be. I fit help you with many things.\n\n💬 *Wetin I fit help you with:*\n• Gist and talk (Chat)\n• Advice wey sweet (Advice)\n• Jokes wey funny (Jokes)\n• Quote of the day (Quotes)\n• Remember wetin you do (Reminders)\n• Write small notes (Notes)\n• Just dey talk if you bored!\n\nTell me wetin dey your mind! 🗣️`,
+                `🤗 *${userName}, I dey here o!* Wetin dey your mind today?\n\nIf you wan gist, laugh, get advice, or just talk, I dey ready. No wahala, I go hold you company. 😊`,
+                `🌞 *Good day ${userName}!* How body?\n\nI dey here to listen, gist, and help you with anything wey dey your mind. You fit talk to me like real padi. 🗣️`
+            ];
+            return greetings[Math.floor(Math.random() * greetings.length)];
         }
     },
 
     // ==================== GIST / CHAT / TALK ====================
     gist: {
-        keywords: ['gist', 'chat', 'talk', 'discuss', 'conversation', 'story', 'tell me', 'tell me something', 'whats new', 'what dey happen', 'wetin dey', 'how things', 'life', 'how life', 'how life dey', 'how far', 'abi', 'shey', 'na so', 'mtchew', 'sapa', 'wahala', 'God when', 'guy', 'my guy', 'sister', 'bro', 'brother', 'naija', 'lagos', 'abuja', 'yoruba', 'igbo', 'hausa', 'ehn ehn', 'chai', 'abi o', 'shey o', 'na wa'],
+        keywords: ['gist', 'chat', 'talk', 'discuss', 'conversation', 'story', 'tell me', 'tell me something', 'whats new', 'what dey happen', 'wetin dey', 'what is happening', 'what is going on', 'what happen', 'what happened', 'wetin happen', 'how things', 'life', 'how life', 'how life dey', 'how far', 'abi', 'shey', 'na so', 'mtchew', 'sapa', 'wahala', 'God when', 'guy', 'my guy', 'sister', 'bro', 'brother', 'naija', 'lagos', 'abuja', 'yoruba', 'igbo', 'hausa', 'ehn ehn', 'chai', 'abi o', 'shey o', 'na wa', 'i want to talk', 'i wan talk', 'i need to talk', 'i dey vex', 'i dey bored', 'i no know what to do', 'i need someone to talk to', 'i wan gist', 'i wan yarn', 'i wan confide', 'i need a listening ear', 'i need person to talk to'],
         response: (userName) => {
             const responses = [
                 `🗣️ *Gist dey o!*\n\n${userName}, life na journey. Today fit be like yesterday, but tomorrow go better!\n\nWetin dey your mind? Abeg share am make we talk. Na here we dey gist like real padi.\n\n💬 Talk to me about anything o - happiness, wahala, love, work, family, or just wetin you eat today! 😂\n\nI dey listen. 👂 Tell me wetin dey your heart.`,
@@ -40,7 +35,7 @@ module.exports = {
 
     // ==================== ADVICE ====================
     advice: {
-        keywords: ['advice', 'help', 'suggest', 'recommend', 'what should i do', 'think', 'opinion', 'advise', 'guide', 'guide me', 'problem', 'issues', 'trouble', 'how to', 'what to do', 'need help', 'help me', 'solutions', 'way forward', 'advise me', 'give me advice', 'I need advice'],
+        keywords: ['advice', 'help', 'suggest', 'recommend', 'what should i do', 'what should i do now', 'what do you think', 'what do you advise', 'opinion', 'advise', 'guide', 'guide me', 'problem', 'issues', 'trouble', 'how to', 'how do i', 'what to do', 'need help', 'help me', 'help me out', 'solutions', 'way forward', 'advise me', 'give me advice', 'i need advice', 'i need guidance', 'i need direction', 'i no know wetin to do', 'i dey confuse', 'i am confused', 'i dey stuck', 'i am stuck', 'i need a solution', 'i need solution', 'how best can i handle this', 'how do i handle this', 'i no know wetin to do again', 'i dey lost', 'i am lost', 'i need direction', 'please advise me'],
         response: (userName) => {
             const responses = [
                 `💡 *${userName}, wetin dey worry you?*\n\nNa advice you need? I go talk my mind o.\n\n1️⃣ *First:* Calm down. No matter wetin dey happen, e go pass. Na true talk.\n2️⃣ *Second:* Think about the problem well well. Write am down if you need.\n3️⃣ *Third:* Ask yourself - "Wetin I fit control?" Focus on that one.\n\n🔑 *My advice today:* If e go cost you your peace, e too expensive. Let am go.\n\n💬 You need more advice? Tell me wetin dey your mind. I go advice you like big brother/sister.`,
@@ -53,7 +48,7 @@ module.exports = {
 
     // ==================== JOKES ====================
     jokes: {
-        keywords: ['joke', 'jokes', 'funny', 'make me laugh', 'laugh', 'comedy', 'humor', 'funny joke', 'crack me up', 'lol', 'haha', 'hehe', 'laughing', 'funny story', 'make me smile'],
+        keywords: ['joke', 'jokes', 'funny', 'make me laugh', 'make i laugh', 'laugh', 'comedy', 'humor', 'funny joke', 'crack me up', 'lol', 'haha', 'hehe', 'laughing', 'funny story', 'make me smile', 'tell me something funny', 'i need laughter', 'i want to laugh', 'crack joke', 'make una laugh', 'make i smile', 'i dey dull', 'i need vibes', 'i wan laugh small'],
         response: (userName) => {
             const jokes = [
                 `😂 *${userName}! I get joke for you o!*\n\nNaija man dey pray for money.\nGod ask am: "Wetin you want?"\nMan say: "Money wey go last me forever o!"\nGod say: "Okay o, take dis one."\nMan check: Na 1 naira coin!\nMan vex: "God na this one?"\nGod say: "E go last you forever... because you no fit spend am!" 😂😂😂\n\n*Shey you like am?* Oya tell me if you want more!`,
@@ -92,7 +87,7 @@ module.exports = {
 
     // ==================== QUOTES / WISDOM ====================
     quotes: {
-        keywords: ['quote', 'quotes', 'wisdom', 'inspire', 'motivate', 'motivation', 'inspiration', 'positive', 'thought', 'thinking', 'deep', 'meaning', 'life quote', 'wise', 'wise word', 'saying', 'proverb', 'inspirational', 'words of wisdom'],
+        keywords: ['quote', 'quotes', 'wisdom', 'inspire', 'motivate', 'motivation', 'inspiration', 'positive', 'thought', 'thinking', 'deep', 'meaning', 'life quote', 'wise', 'wise word', 'saying', 'proverb', 'inspirational', 'words of wisdom', 'give me a quote', 'inspiring word', 'deep quote', 'wise words', 'motivate me', 'inspire me', 'something deep', 'give me wisdom', 'drop wisdom', 'word for the day'],
         response: (userName) => {
             const quotes = [
                 `🌟 *Quote for you, ${userName}*\n\n"Life na like bicycle - to keep balance, you must keep moving."\n\n🚴‍♂️ *Meaning:* No matter wetin happen, keep pushing forward. Na small step every day go lead you to big achievement.\n\n💭 *Your turn:* Wetin you think about this one?`,
@@ -136,7 +131,7 @@ module.exports = {
 
     // ==================== HAPPY / SAD ====================
     feeling: {
-        keywords: ['happy', 'sad', 'feeling', 'emotion', 'mood', 'down', 'up', 'excited', 'worried', 'anxious', 'lonely', 'tired', 'stress', 'depressed', 'cry', 'smile', 'joy', 'pain', 'hurt', 'broken', 'suffering', 'happy day', 'bad day', 'good day'],
+        keywords: ['happy', 'sad', 'feeling', 'emotion', 'mood', 'down', 'up', 'excited', 'worried', 'anxious', 'lonely', 'tired', 'stress', 'depressed', 'cry', 'smile', 'joy', 'pain', 'hurt', 'broken', 'suffering', 'happy day', 'bad day', 'good day', 'i dey sad', 'i am sad', 'i dey happy', 'i am happy', 'i dey tired', 'i am tired', 'i dey down', 'i am down', 'i dey stressed', 'i am stressed', 'i dey worried', 'i am worried', 'i dey lonely', 'i am lonely', 'i dey anxious', 'i am anxious', 'i dey depressed', 'i am depressed', 'i dey broken', 'i am broken', 'i need comfort', 'i no feel fine', 'i no dey okay', 'i no dey feel good', 'i dey weak', 'i am weak', 'i dey frustrated', 'i am frustrated'],
         response: (userName) => {
             const responses = [
                 `❤️ *${userName}, I dey hear you o!*\n\nWetin you dey feel, na real feeling. No be small thing.\n\nIf you happy: Celebrate am! 🎉 Tell me wetin make you happy make I join you.\nIf you sad: E go pass. No worry. I dey here. 🤗\n\n💭 *Remember:* Feeling no be forever. Tomorrow fit be better.\n\n🗣️ Talk to me. I go listen. I go understand.`,
@@ -167,7 +162,12 @@ module.exports = {
     motivation: {
         keywords: ['motivate', 'encourage', 'inspire', 'strength', 'courage', 'keep going', 'dont give up', 'never give up', 'persevere', 'perseverance', 'try again', 'rise', 'stand up', 'I cant', 'I no fit', 'discouraged'],
         response: (userName) => {
-            return `💪 *${userName}! I go motivate you!*\n\nNo give up o! You be warrior! You fit do am!\n\n🔥 *Remember:*\n• Every champion start small\n• Every journey start with one step\n• Every success get story of struggle\n• Your story no finish yet!\n\n🦁 *You be lion!* No be goat!\n\n🗣️ Wetin you wan achieve? Tell me make I cheer you! 📣`
+            const messages = [
+                `💪 *${userName}! I go motivate you!*\n\nNo give up o! You be warrior! You fit do am!\n\n🔥 *Remember:*\n• Every champion start small\n• Every journey start with one step\n• Every success get story of struggle\n• Your story no finish yet!\n\n🦁 *You be lion!* No be goat!\n\n🗣️ Wetin you wan achieve? Tell me make I cheer you! 📣`,
+                `🌟 *${userName}, calm down and breathe.*\n\nYou no dey alone. If you fit start, you fit continue. Small progress still progress. One step today na better than zero.\n\nYou get this! I believe in you. 💛`,
+                `🚀 *${userName}, no let the pressure kill your shine.*\n\nLife fit be hard sometimes, but you no need to quit just because e tough. Keep your head up, keep moving, and trust your journey. 🙌`
+            ];
+            return messages[Math.floor(Math.random() * messages.length)];
         }
     },
 
@@ -175,7 +175,12 @@ module.exports = {
     prayer: {
         keywords: ['pray', 'prayer', 'pray for me', 'God', 'Jesus', 'Allah', 'church', 'mosque', 'faith', 'spiritual', 'bless me', 'prayers', 'amen', 'hallelujah', 'alhamdulillah', 'intercede', 'supplication'],
         response: (userName) => {
-            return `🙏 *${userName}, I go pray for you!*\n\nGod wey see you, e go answer you.\n\n🕊️ *My prayer for you today:*\n• May you find peace wey pass understanding\n• May your heart dey light and your mind dey clear\n• May good people cross your path\n• May your blessings overflow\n• May you see the goodness of God\n\n📖 *Remember:* "Ask, and e go give you. Seek, and you go find."\n\nAmen! 🙌`
+            const prayers = [
+                `🙏 *${userName}, I go pray for you!*\n\nGod wey see you, e go answer you.\n\n🕊️ *My prayer for you today:*\n• May you find peace wey pass understanding\n• May your heart dey light and your mind dey clear\n• May good people cross your path\n• May your blessings overflow\n• May you see the goodness of God\n\n📖 *Remember:* "Ask, and e go give you. Seek, and you go find."\n\nAmen! 🙌`,
+                `🌿 *${userName}, I dey hold you in prayer.*\n\nMay your worries reduce, your strength increase, and your heart find rest. May every burden wey heavy for you become lighter today. 🙏`,
+                `🕯️ *${userName}, I pray for calm for your mind and peace for your spirit.*\n\nMay God guide your steps, bless your path, and make your day better than you expect. Amen. ✨`
+            ];
+            return prayers[Math.floor(Math.random() * prayers.length)];
         }
     },
 

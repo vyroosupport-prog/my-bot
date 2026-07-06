@@ -1,67 +1,185 @@
 const { default: makeWASocket, useMultiFileAuthState } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const keywordCategories = require('./keywords');
 
-// ==================== KEEP-ALIVE SERVER ====================
 const app = express();
 const port = process.env.PORT || 3000;
+let botReady = false;
+
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, 'utf8');
+    envFile.split(/\r?\n/).forEach((line) => {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+
+        const separatorIndex = trimmed.indexOf('=');
+        if (separatorIndex === -1) return;
+
+        const key = trimmed.slice(0, separatorIndex).trim();
+        const value = trimmed.slice(separatorIndex + 1).trim();
+        if (!process.env[key]) {
+            process.env[key] = value;
+        }
+    });
+}
 
 app.get('/', (req, res) => {
-    res.send('My Life Bot is running!');
+    res.send('Bot is running!');
+});
+
+app.get('/health', (req, res) => {
+    res.json({
+        status: botReady ? 'ready' : 'starting',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+    });
+});
+
+app.get('/healthz', (req, res) => {
+    const statusCode = botReady ? 200 : 503;
+    res.status(statusCode).json({
+        status: botReady ? 'ok' : 'starting',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+    });
 });
 
 app.listen(port, () => {
     console.log(`✅ Keep-alive server running on port ${port}`);
 });
 
-// ==================== WHATSAPP BOT ====================
+function normalizeText(text) {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function getDisplayName(text, sender) {
+    const nameMatch = text.match(/my name is ([a-zA-Z][a-zA-Z0-9 ]{1,20})|i am ([a-zA-Z][a-zA-Z0-9 ]{1,20})|i'm ([a-zA-Z][a-zA-Z0-9 ]{1,20})/i);
+    if (nameMatch) {
+        return (nameMatch[1] || nameMatch[2] || nameMatch[3] || 'my padi').trim();
+    }
+
+    if (sender && sender.includes('@')) {
+        const localPart = sender.split('@')[0];
+        if (localPart && localPart !== 'status') {
+            return localPart;
+        }
+    }
+
+    return 'my padi';
+}
+
+function getReplyForMessage(text, userName = 'my padi') {
+    const normalizedText = normalizeText(text || '');
+    if (!normalizedText) {
+        return '👋 I dey here o! Tell me wetin dey your mind.';
+    }
+
+    for (const [, category] of Object.entries(keywordCategories)) {
+        const matched = category.keywords.some((keyword) => {
+            const normalizedKeyword = normalizeText(keyword);
+            return normalizedKeyword && normalizedText.includes(normalizedKeyword);
+        });
+
+        if (matched) {
+            return category.response(userName);
+        }
+    }
+
+    return `🤖 *I dey here!*
+
+I no quite understand, but no worry.
+
+Try these:
+• Hello - Greet me
+• Gist - Tell me something
+• Joke - Make you laugh
+• Advice - Give you guidance
+• Help - See all options
+
+Wetin you want talk about? 🗣️`;
+}
+
 async function startBot() {
-    console.log('🚀 Starting Life Style Bot...');
-    
+    botReady = false;
+    console.log('🚀 Starting bot...');
+
+    // Delete old session if it exists
+    if (fs.existsSync('auth_info')) {
+        console.log('🗑️ Deleting old session...');
+        fs.rmSync('auth_info', { recursive: true, force: true });
+    }
+
     const { state, saveCreds } = await useMultiFileAuthState('auth_info');
-    
+
     const sock = makeWASocket({
-        auth: state
+        auth: state,
+        printQRInTerminal: false,
     });
 
-    let pairingCodeRequested = false;
+    let codeRequested = false;
+
+    const requestPairingCode = async () => {
+        if (codeRequested || sock.authState?.creds?.registered) return;
+        codeRequested = true;
+
+        console.log('🔐 Requesting WhatsApp pairing code...');
+
+        try {
+            const phoneNumber = process.env.PHONE_NUMBER;
+            if (!phoneNumber) {
+                console.log('⚠️ PHONE_NUMBER not set! Add it to your environment and restart the bot.');
+                return;
+            }
+
+            const cleanNumber = phoneNumber.replace(/\s/g, '');
+            console.log(`📱 Requesting code for ${cleanNumber}...`);
+            const code = await sock.requestPairingCode(cleanNumber);
+            console.log(`\n✅✅✅ PAIRING CODE: ${code} ✅✅✅`);
+            console.log('🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number\n');
+        } catch (error) {
+            console.log('⚠️ Unable to request pairing code:', error.message);
+            codeRequested = false;
+        }
+    };
+
+    setTimeout(() => {
+        requestPairingCode().catch((error) => {
+            console.log('⚠️ Pairing request failed:', error.message);
+            codeRequested = false;
+        });
+    }, 4000);
 
     sock.ev.on('connection.update', async (update) => {
-        console.log('📡 Connection update:', Object.keys(update));
-        
         const { connection, lastDisconnect, qr } = update;
-        
-        // Show QR code when received
-        if (qr) {
-            console.log('📱 QR CODE RECEIVED!');
-            console.log('🔗 Copy this URL into your browser:');
-            console.log(qr);
-            console.log('📱 Or scan the QR code below:');
-            // QR code will print automatically via Baileys
+
+        console.log('📡 Connection status:', connection || 'connecting...');
+
+        if (connection === 'open') {
+            botReady = true;
+            console.log('✅ WhatsApp connection is ready');
         }
-        
-        if (connection === 'open' && !pairingCodeRequested) {
-            pairingCodeRequested = true;
-            console.log('✅ Connection is open! Requesting pairing code...');
-            
-            try {
-                const phoneNumber = process.env.PHONE_NUMBER;
-                if (phoneNumber) {
-                    console.log(`📱 Requesting pairing code for ${phoneNumber}...`);
-                    const code = await sock.requestPairingCode(phoneNumber);
-                    console.log(`✅ PAIRING CODE: ${code}`);
-                    console.log(`🔑 Enter this code in WhatsApp -> Settings -> Linked Devices -> Link with phone number`);
-                } else {
-                    console.log('⚠️ No PHONE_NUMBER found.');
-                }
-            } catch (error) {
-                console.log('⚠️ Could not request pairing code:', error.message);
-            }
+
+        if (connection === 'open' && !codeRequested) {
+            await requestPairingCode();
+        }
+
+        if (qr) {
+            console.log('📱 QR code detected, but pairing-code login is enabled. Skipping QR login.');
         }
 
         if (connection === 'close') {
+            botReady = false;
             const shouldReconnect = (lastDisconnect?.error instanceof Boom)?.output?.statusCode !== 401;
             console.log('Connection closed, reconnecting...');
+            codeRequested = false;
             if (shouldReconnect) {
                 setTimeout(startBot, 5000);
             }
@@ -76,54 +194,14 @@ async function startBot() {
             const sender = msg.key.remoteJid;
             const text = msg.message.conversation || msg.message.extendedTextMessage?.text || '';
             console.log(`📩 Message from ${sender}: ${text}`);
-
-            const lowerText = text.toLowerCase();
-            let reply = '';
-
-            // Greetings
-            if (lowerText.includes('hello') || lowerText.includes('hi') || lowerText.includes('hey')) {
-                reply = `👋 Hello! How you dey?\n\nI dey here to gist with you. How your day go so far? 😊`;
-            }
-            // How are you
-            else if (lowerText.includes('how are you') || lowerText.includes('how you dey')) {
-                reply = `I dey fine o! 🙌 Thanks for asking.\n\nHow you sef? Any gist for me today? 😄`;
-            }
-            // Gist
-            else if (lowerText.includes('gist') || lowerText.includes('story') || lowerText.includes('tell me something')) {
-                reply = `📖 *Gist of the day*\n\nYou know, life na like market. Sometimes e sweet, sometimes e sour. But the important thing na to keep moving forward.\n\nWetin dey your mind today? Make we talk am! 🗣️`;
-            }
-            // Advice
-            else if (lowerText.includes('advice') || lowerText.includes('suggest') || lowerText.includes('help')) {
-                reply = `💡 *My advice for you*\n\nNo matter wetin you dey face today, remember say:\n• You be warrior 💪\n• This moment go pass ⏳\n• You no dey alone 🤝\n\nKeep your head up! 😊`;
-            }
-            // Joke
-            else if (lowerText.includes('joke') || lowerText.includes('funny') || lowerText.includes('make me laugh')) {
-                const jokes = [
-                    `😂 *Joke 1*\n\nWhy Nigerian man no dey use calculator?\nBecause e know say na only God fit count all the wahala for life! 😂`,
-                    `😂 *Joke 2*\n\nWoman: "Honey, if I drop 10 naira, you go see am?"\nMan: "Yes."\nWoman: "If I drop 100 naira, you go see am?"\nMan: "Yes."\nWoman: "If I drop 1000 naira, you go see am?"\nMan: "Yes."\nWoman: "So wetin dey your eye?"\nMan: "Na God dey my eye!" 😂`
-                ];
-                reply = jokes[Math.floor(Math.random() * jokes.length)];
-            }
-            // Quote
-            else if (lowerText.includes('quote') || lowerText.includes('inspire') || lowerText.includes('wisdom')) {
-                const quotes = [
-                    `🌟 *Quote of the day*\n\n"Na the journey wey you no see, but you must walk am - that one na faith."\n\nKeep believing! 💪`,
-                    `🌟 *Quote of the day*\n\n"Life na like bicycle - to keep balance, you must keep moving."\n\nNo stop moving forward! 🚴‍♂️`
-                ];
-                reply = quotes[Math.floor(Math.random() * quotes.length)];
-            }
-            // Default
-            else {
-                const defaultReplies = [
-                    `🤖 *I dey here!*\n\nI no quite understand, but no worry.\n\nTry these:\n• Hello - Greet me\n• Gist - Tell me something\n• Joke - Make you laugh\n• Advice - Give you guidance\n\nWetin you want talk about? 🗣️`,
-                    `🤖 *Life Style Bot*\n\nI dey here to listen and gist with you!\n\nYou fit ask me for:\n• Gist 🗣️\n• Advice 💡\n• Joke 😂\n• Quote 🌟\n\nJust type wetin dey your mind! 😊`
-                ];
-                reply = defaultReplies[Math.floor(Math.random() * defaultReplies.length)];
-            }
-
+            const displayName = getDisplayName(text, sender);
+            const reply = getReplyForMessage(text, displayName);
             await sock.sendMessage(sender, { text: reply });
         }
     });
 }
 
-startBot();
+startBot().catch((error) => {
+    console.error('❌ Bot startup failed:', error);
+    setTimeout(() => startBot(), 10000);
+});
